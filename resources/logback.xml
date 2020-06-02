@@ -1,0 +1,23 @@
+<configuration>
+    <property name="LOG_LEVEL" value="INFO"/>
+    <property name="JOOQ_LOG_LEVEL" value="DEBUG"/>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{YYYY-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <root level="${LOG_LEVEL}">
+        <appender-ref ref="STDOUT"/>
+    </root>
+    <logger name="org.eclipse.jetty" level="${LOG_LEVEL}"/>
+    <logger name="io.netty" level="${LOG_LEVEL}"/>
+    <!-- SQL execution logging is logged to the LoggerListener logger at DEBUG level -->
+    <Logger name="org.jooq.tools.LoggerListener" level="${JOOQ_LOG_LEVEL}">
+        <AppenderRef ref="STDOUT"/>
+    </Logger>
+
+    <!-- Other jOOQ related debug log output -->
+    <Logger name="org.jooq" level="${JOOQ_LOG_LEVEL}">
+        <AppenderRef ref="STDOUT"/>
+    </Logger>
+</configuration>
