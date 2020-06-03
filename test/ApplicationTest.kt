@@ -4,7 +4,16 @@ import com.example.Tables.AUTHOR
 import com.example.enums.Gender
 import com.example.tables.daos.AuthorDao
 import com.typesafe.config.ConfigFactory
+import io.ktor.application.Application
 import io.ktor.config.HoconApplicationConfig
+import io.ktor.config.MapApplicationConfig
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.testing.TestApplicationEngine
+import io.ktor.server.testing.createTestEnvironment
+import io.ktor.server.testing.handleRequest
+import io.ktor.server.testing.withTestApplication
+import io.ktor.util.KtorExperimentalAPI
 import kotlin.test.*
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
@@ -12,20 +21,39 @@ import org.jooq.codegen.GenerationTool
 import org.jooq.impl.DefaultConfiguration
 import org.jooq.meta.jaxb.*
 import org.jooq.meta.jaxb.Configuration
+import org.junit.BeforeClass
 import org.slf4j.LoggerFactory
 import java.sql.DriverManager
 
 
 class ApplicationTest {
-//    @Test
-//    fun testRoot() {
-//        withTestApplication({ module(testing = true) }) {
-//            handleRequest(HttpMethod.Get, "/").apply {
-//                assertEquals(HttpStatusCode.OK, response.status())
+
+    companion object {
+        @KtorExperimentalAPI
+        val engine = TestApplicationEngine(createTestEnvironment {
+            config = HoconApplicationConfig(ConfigFactory.load("application-test.conf"))
+        })
+
+        @BeforeClass
+        @JvmStatic
+        fun setup() {
+//            logger.debug("Starting application with config ....")
+            engine.start(wait = false)
+            engine.application.module(true)
+        }
+    }
+
+    @Test
+    fun testRoot() {
+        with(engine) {
+
+            handleRequest(HttpMethod.Get, "/author").apply {
+                assertEquals(HttpStatusCode.OK, response.status())
+                println(response.content)
 //                assertEquals("HELLO WORLD!", response.content)
-//            }
-//        }
-//    }
+            }
+        }
+    }
 
     @Ignore
     @Test
@@ -70,7 +98,6 @@ class ApplicationTest {
         GenerationTool.generate(configuration)
     }
 
-    @Ignore
     @Test
     fun `jooq dsl`() {
         DSL.using("jdbc:mysql://localhost:3306/jooq_learn", "root", "password").use { ctx ->
@@ -84,7 +111,7 @@ class ApplicationTest {
 
             // select into pojo
             val dto = ctx.select(AUTHOR.ID, AUTHOR.FIRST_NAME, AUTHOR.LAST_NAME, AUTHOR.GENDER)
-                .from(AUTHOR)
+                .from(AUTHOR).where(AUTHOR.ID.eq(1L))
                 .fetchOneInto(com.example.tables.pojos.Author::class.java)
             println("dto print")
             println(dto)
@@ -104,7 +131,6 @@ class ApplicationTest {
         config.getConfig("db").entrySet().forEach { e -> println(e.key + ", " + e.value.unwrapped()) }
     }
 
-    @Ignore
     @Test
     fun `using dao`() {
         val conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/jooq_learn", "root", "password")

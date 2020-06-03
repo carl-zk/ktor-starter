@@ -6,6 +6,7 @@ buildscript {
 
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'org.jooq:jooq-codegen:3.13.2'
     }
 }
 
@@ -13,6 +14,7 @@ plugins {
     id 'java'
     id 'com.google.cloud.tools.jib' version '2.3.0'
     id 'com.github.johnrengelman.shadow' version '5.2.0'
+    id 'nu.studer.jooq' version '4.2'
 }
 
 apply plugin: 'kotlin'
@@ -21,6 +23,51 @@ apply plugin: 'application'
 group 'com.example'
 version '0.0.1-SNAPSHOT'
 mainClassName = "io.ktor.server.netty.EngineMain"
+
+jooq {
+    version = '3.13.1'
+    edition = 'OSS'
+    generateSchemaSourceOnCompilation = true
+    sample(sourceSets.main) {
+        jdbc {
+            driver = 'com.mysql.cj.jdbc.Driver'
+            url = 'jdbc:mysql://localhost:3306/jooq_learn'
+            user = 'root'
+            password = 'password'
+        }
+        generator {
+            name = 'org.jooq.codegen.JavaGenerator'
+            strategy {
+                name = 'org.jooq.codegen.DefaultGeneratorStrategy'
+            }
+            database {
+                name = 'org.jooq.meta.mysql.MySQLDatabase'
+                inputSchema = 'jooq_learn'
+                forcedTypes {
+                    forcedType {
+                        userType = 'com.example.enums.Gender'
+                        enumConverter = true
+                        includeExpression = '.*\\.GENDER'
+                        includeTypes = '.*'
+                    }
+                }
+            }
+            generate {
+                relations = true
+                deprecated = false
+                records = true
+                pojos = true
+                comments = true
+                daos = true
+                fluentSetters = true
+            }
+            target {
+                packageName = 'com.example'
+                directory = 'build/generated-src'
+            }
+        }
+    }
+}
 
 sourceSets {
     main.kotlin.srcDirs = main.java.srcDirs = ['src', 'build/generated-src']
@@ -53,6 +100,7 @@ repositories {
     mavenLocal()
     jcenter()
     maven { url 'https://kotlin.bintray.com/ktor' }
+    maven { url 'https://dl.bintray.com/kotlin/ktor/' }
 }
 
 dependencies {
@@ -61,8 +109,12 @@ dependencies {
     implementation "ch.qos.logback:logback-classic:$logback_version"
     implementation "io.ktor:ktor-server-core:$ktor_version"
     implementation "io.ktor:ktor-html-builder:$ktor_version"
-    testImplementation "io.ktor:ktor-server-tests:$ktor_version"
-    implementation group: 'org.jooq', name: 'jooq', version: '3.13.1'
+//    testImplementation "io.ktor:ktor-server-tests:$ktor_version"
+    testCompile "io.ktor:ktor-server-test-host:$ktor_version"
+    // https://mvnrepository.com/artifact/io.ktor/ktor-server-test-host
+//    testImplementation group: 'io.ktor', name: 'ktor-server-test-host', version: '1.3.2-1.4-M1-2'
+    implementation 'org.jooq:jooq'
+    jooqRuntime 'mysql:mysql-connector-java:8.0.20'
     implementation group: 'org.jooq', name: 'jooq-meta', version: '3.13.1'
     implementation group: 'org.jooq', name: 'jooq-codegen', version: '3.13.1'
     implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.20'

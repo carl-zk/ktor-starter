@@ -20,7 +20,8 @@ import java.time.Duration
  * @author carl
  *
  */
-fun Application.http() {
+@JvmOverloads
+fun Application.http(testing: Boolean = false) {
     install(DefaultHeaders)
     // This uses use the logger to log every call (request/response)
     install(CallLogging)

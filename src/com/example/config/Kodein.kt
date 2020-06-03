@@ -16,7 +16,8 @@ import org.kodein.di.ktor.kodein
  * @author carl
  *
  */
-fun Application.kodein() {
+@JvmOverloads
+fun Application.kodein(testing: Boolean = false) {
     val configuration = loadDB(environment)
     kodein {
         bind<AuthorDao>() with singleton { AuthorDao(configuration) }

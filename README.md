@@ -21,3 +21,9 @@ CREATE TABLE `author` (
 ## components
 - ktor
 - jooq
+
+# API 
+[snowboard](https://github.com/bukalapak/snowboard)
+```bash
+docker run -it --rm -p 8088:8088 -v $PWD/doc:/doc quay.io/bukalapak/snowboard http -b 0.0.0.0:8088 --watch API.apib
+```

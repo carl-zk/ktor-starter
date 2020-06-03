@@ -1,14 +1,22 @@
 package com.example
 
+import com.example.config.http
+import com.example.config.kodein
+import com.example.config.routers
 import io.ktor.application.install
+import io.ktor.config.MapApplicationConfig
+import io.ktor.http.*
 import io.ktor.http.cio.websocket.Frame
 import io.ktor.http.cio.websocket.readText
-import io.ktor.websocket.WebSockets
 import io.ktor.routing.routing
+import io.ktor.websocket.WebSockets
+import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.websocket.webSocket
-import junit.framework.Assert.assertEquals
+import io.netty.handler.codec.http.HttpHeaders.addHeader
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import org.junit.Assert.assertEquals
+import org.junit.Ignore
 import org.junit.Test
 
 /**
@@ -16,6 +24,32 @@ import org.junit.Test
  *
  */
 class WebSocketTest {
+
+    @Ignore
+    @Test
+    fun testA() {
+        withTestApplication({
+            (environment.config as MapApplicationConfig).apply {
+//                url = "jdbc:mysql://localhost:3306/jooq_learn"
+//                user = "root"
+//                password = "password"
+                put("ktor.env", "dev")
+                put("db.url", "jdbc:mysql://localhost:3306/jooq_learn")
+                put("db.user", "root")
+                put("db.password", "password")
+            }
+            kodein()
+            routers()
+            http()
+        }) {
+            with(handleRequest(HttpMethod.Get, "/author")) {
+                assertEquals(HttpStatusCode.OK, response.status())
+                assertEquals("Hello from Ktor Testable sample application", response.content)
+            }
+        }
+    }
+
+    @Ignore
     @Test
     fun testConversation() {
         withTestApplication {
